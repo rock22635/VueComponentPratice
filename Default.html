@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>作業練習：元件變換</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/stylesheets/all.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/solid.js"
+        integrity="sha384-+Ga2s7YBbhOD6nie0DzrZpJes+b2K1xkpKxTFFcx59QmVPaSA8c7pycsNaFwUK6l"
+        crossorigin="anonymous"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/regular.js"
+        integrity="sha384-t7yHmUlwFrLxHXNLstawVRBMeSLcXTbQ5hsd0ifzwGtN7ZF7RZ8ppM7Ldinuoiif"
+        crossorigin="anonymous"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/fontawesome.js"
+        integrity="sha384-7ox8Q2yzO/uWircfojVuCQOZl+ZZBg2D2J5nkpLqzH1HY0C1dHlTKIbpRz/LG23c"
+        crossorigin="anonymous"></script>
+    <script src="/javascripts/vendor.js"></script>
+
+</head>
+
+<body class="bg-lighter">
+
+    <div class="container my-5">
+        <div class="row">
+
+            <div class="col-md-9 post">
+                <!-- 練習開始 -->
+                <!-- <h1 class="mt-0 text-muted">作業練習：元件變換</h1>
+
+                <h3>模板練習作業：Ajax 資料內容呈現</h3>
+                <p>本作業一定要用到元件。</p> -->
+                <div class="alert alert-secondary">
+                    <p>提示：</p>
+                    <ol class="mb-0">
+                        <li>將資料內容透過 "元件" 呈現</li>
+                        <li>製作城市過濾選項</li>
+                        <li>將內層資料透過 emit 傳遞到外層 (作為另一個關注城市的呈現)</li>
+                        <li>依據不同污染呈現不同色彩</li>
+                        <li>加分題：透過 localStorage 儲存上次關注的城市</li>
+                    </ol>
+                </div>
+
+                <div id="app">
+                    <select name="" id="" class="form-control mb-3" v-model="SelectedCity">
+                        <option value="">--- 請選擇城市 ---</option>
+                        <option is="SelectOption" v-for="item in City" :Country-Options="item"></option>
+
+                    </select>
+                    <div>
+                        <h4>關注城市</h4>
+                        <Cards v-for="item in NoticeCards" :Card-Item="item" v-on:addnotice="AddStar">
+                            <i class="fas fa-star"></i>
+                        </Cards>
+                    </div>
+
+                    <hr>
+                    <!-- <div class="card-columns">
+                        <div class="card status-aqi2">
+                            <div class="card-header">苗栗縣 - 三義
+                                <a href="#" class="float-right"><i class="far fa-star"></i></a>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled">
+                                    <li>AQI 指數: 54</li>
+                                    <li>PM2.5: 8</li>
+                                    <li>說明: 普通</li>
+                                </ul>
+                                2018-05-20 16:00
+                            </div>
+                        </div>
+                    </div> -->
+                    <Cards v-for="item in SelectCards" :Card-Item="item" v-on:addnotice="AddStar"></Cards>
+                </div>
+                <script type="text/x-template" id="Options">
+                    <option :value="CountryOptions">{{CountryOptions}}</option>
+                </script>
+
+                <script type="text/x-template" id="CityCards">
+                    <div class="col-md-4 " style="display:inline-block;margin-bottom:10px;" >
+                        <div class="card" :class="CardStyle" >
+                            <div class="card-header"> {{CardItem.County}} - {{CardItem.SiteName}}
+                                <a href="#" class="float-right" @click="StarClick">
+                                   <slot>
+                                    <i class="far fa-star"></i>
+                                   </slot>
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled">
+                                    <li>AQI 指數: {{CardItem.AQI}}</li>
+                                    <li>PM2.5: {{CardItem["PM2.5"]}}</li>
+                                    <li>說明: {{CardItem.Status}}</li>
+                                </ul>
+                                {{CardItem.PublishTime}}
+                            </div>
+                        </div>
+                    </div>
+                </script>
+                <script>
+                    // API 來源
+                    // https://opendata.epa.gov.tw/Data/Contents/AQI/
+                    Vue.component('SelectOption', {
+                        props: ['Country-Options'],
+                        template: "#Options",
+                    });
+
+                    Vue.component('Cards', {
+                        props: ['Card-Item'],
+                        template: "#CityCards",
+                        computed: {
+                            CardStyle: function () {
+                                var vm = this;
+                                var css = "";
+
+                                if (vm.CardItem.Status === "普通") {
+                                    css = "status-aqi2";
+                                }
+                                if (vm.CardItem.Status === "對敏感族群不健康") {
+                                    css = "status-aqi3";
+                                }
+                                if (vm.CardItem.Status === "對所有族群不健康") {
+                                    css = "status-aqi4";
+                                }
+                                if (vm.CardItem.Status === "非常不健康") {
+                                    css = "status-aqi5";
+                                }
+                                if (vm.CardItem.Status === "危害") {
+                                    css = "status-aqi6";
+                                }
+                                return css;
+                            }
+                        },
+                        methods: {
+                            StarClick() {
+                                this.$emit('addnotice', this.CardItem);
+                            }
+                        },
+                    });
+
+                    var app = new Vue({
+                        el: '#app',
+                        data: {
+                            data: [],
+                            location: [],
+                            stared: [],
+                            filter: '',
+                            catchCity: [],
+                            catchdata: [],
+                            SelectedData: [],
+                            SelectedCity: ''
+                        },
+                        mounted() {
+                            this.getData();
+                        },
+                        // 請在此撰寫 JavaScript
+                        methods: {
+                            getData() {
+                                const vm = this;
+                                const api = 'http://opendata2.epa.gov.tw/AQI.json';
+
+                                // 使用 jQuery ajax
+                                $.get(api).then(function (response) {
+                                    vm.data = response;
+                                    console.log(response)
+                                });
+                            },
+                            AddStar: function (CardItem) {
+                                var vm = this;
+                                var flag = true;
+                                vm.SelectedData.forEach(function (item, index, array) {
+                                    if (item === CardItem) {
+                                        console.log(item, index, array);
+                                        console.log("Card" + CardItem);
+                                        vm.SelectedData.splice(index, 1);
+                                        vm.data.push(CardItem);
+                                        flag = false;
+                                    }
+                                });
+                                if (flag) {
+                                    vm.data.forEach(function (item, index, array) {
+                                        if (item === CardItem) {
+                                            console.log(item, index, array);
+                                            vm.data.splice(index, 1);
+                                            vm.SelectedData.push(CardItem);
+                                        }
+
+                                    });
+                                }
+
+                            }
+
+                        }
+                        ,
+                        computed: {
+                            City: function () {
+                                var vm = this;
+                                vm.data.forEach(function (item, index, array) {
+                                    if (!vm.catchCity.includes(item.County)) {
+                                        vm.catchCity.push(item.County);
+                                    }
+                                });
+                                return vm.catchCity;
+                            },
+                            SelectCards: function () {
+                                var vm = this;
+                                vm.catchdata = vm.data;
+                                if (vm.SelectedCity != "") {
+                                    vm.catchdata = vm.data.filter(item => item.County === vm.SelectedCity);
+                                }
+                                vm.catchdata = vm.catchdata.sort(function (a, b) {
+                                    a = a["SiteId"];
+                                    b = b["SiteId"];
+                                    return a - b ;
+                                });
+
+                                return vm.catchdata;
+                            },
+                            NoticeCards: function () {
+                                var vm = this;
+                                vm.SelectedData = vm.SelectedData.sort(function (a, b) {
+                                    a = a["SiteId"];
+                                    b = b["SiteId"];
+                                    return a - b ;
+                                });
+                                return vm.SelectedData;
+                            }
+                        }
+                    });
+                </script>
+                <!-- 
+狀態對應表
+'良好',
+'status-aqi2' '普通',
+'status-aqi3' '對敏感族群不健康',
+'status-aqi4' '對所有族群不健康',
+'status-aqi5' '非常不健康',
+'status-aqi6' '危害'
+-->
+                <style>
+                    .status-aqi2 {
+                        background-color: #ffff00;
+                    }
+
+                    .status-aqi3 {
+                        background-color: #ff7e00;
+                    }
+
+                    .status-aqi4 {
+                        background-color: #ff0000;
+                    }
+
+                    .status-aqi5 {
+                        background-color: #8f3f97;
+                    }
+
+                    .status-aqi6 {
+                        background-color: #7e0023;
+                    }
+                </style>
+
+
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
